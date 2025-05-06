@@ -62,8 +62,8 @@ class PersistentHomologyTransformer(BaseEstimator, TransformerMixin):
         self.pipeline = Pipeline(multiple_series_steps)
 
     def fit(self, X, y=None):
-        self.pipeline.fit(np.vstack( [np.concatenate( [self.psd_calculator.PSD(freqs, self.domain) for freqs in record]) for record in tqdm(X, desc="Fitting transformer (Topo1. Persistent Homology)")] ),
-                          y)
+        PSD = np.array( [ [self.psd_calculator.PSD(freqs, self.domain) for freqs in record] for record in tqdm(X, desc="Fitting transformer (Topo1. Persistent Homology)")] )
+        self.pipeline.fit(np.concatenate(PSD), y)
         return self
 
     def transform(self, X):
