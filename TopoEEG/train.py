@@ -69,7 +69,7 @@ def train(model,
             optimizer.zero_grad()
 
             outputs = model(inputs)
-            loss = criterion(outputs.squeeze(), labels)
+            loss = criterion(outputs.squeeze(), labels.squeeze())
             loss.backward()
             optimizer.step()
 
