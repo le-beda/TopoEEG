@@ -50,7 +50,7 @@ def main(
     save_features_for_later,
     random_state,
     num_epochs,
-    batch_size
+    batch_size,
     args
 ):
     rng = RandomState(random_state) 
