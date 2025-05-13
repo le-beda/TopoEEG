@@ -127,8 +127,7 @@ class TopoEEG(nn.Module):
         features = {}
         for name in self.input_shapes.keys():
             x = x_dict[name]
-            if len(self.input_shapes[name]) == 1:
-                x = x.unsqueeze(1)
+            x = x.unsqueeze(1)
             features[name] = self.feature_extractors[name](x)
 
         # 1.
