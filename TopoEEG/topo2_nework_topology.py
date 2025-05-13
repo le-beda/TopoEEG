@@ -6,7 +6,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 # Topo2. Network Topology 
 class NetworkTopologyTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, 
-                 connectivity_method='plv', 
                  freq_bands={
                     'delta' : (0.9, 4.),
                     'theta' : (4. , 8.),
@@ -16,16 +15,10 @@ class NetworkTopologyTransformer(BaseEstimator, TransformerMixin):
                     'all'   : (0.5, 40.)
                 }, 
                  threshold=0.5, 
-                 sfreq=512,
-                 include_degree=True, include_global_efficiency=True, include_clustering=True, include_transitivity=True):
+                 sfreq=512):
         
-        self.connectivity_method = connectivity_method
         self.freq_bands = freq_bands
         self.threshold = threshold
-        self.include_degree = include_degree
-        self.include_global_efficiency = include_global_efficiency
-        self.include_clustering = include_clustering
-        self.include_transitivity = include_transitivity
         self.sfreq = sfreq
         
     def fit(self, X, y=None):
@@ -60,14 +53,9 @@ class NetworkTopologyTransformer(BaseEstimator, TransformerMixin):
                     print(f"No frequencies found in {band} band")
                     continue
                 
-                if self.connectivity_method == 'plv':
-                    conn = self._compute_plv(spectra[:, band_idx])
-                elif self.connectivity_method == 'coh':
-                    conn = self._compute_coherence(spectra[:, band_idx])
-                elif self.connectivity_method == 'imaginary_coh':
-                    conn = self._compute_imaginary_coherence(spectra[:, band_idx])
-                else:
-                    raise ValueError(f"Unknown connectivity method: {self.connectivity_method}")
+                conn = self._compute_plv(spectra[:, band_idx])
+                # conn = self._compute_coherence(spectra[:, band_idx])
+                # conn = self._compute_imaginary_coherence(spectra[:, band_idx])
                 
                 connectivity_matrices.append(conn)
             
@@ -82,50 +70,46 @@ class NetworkTopologyTransformer(BaseEstimator, TransformerMixin):
                 curr_features = []
                 
                 # 1. Node degrees
-                if self.include_degree:
-                    degrees = np.sum(W, axis=1)
-                    curr_features.extend(degrees)
+                degrees = np.sum(W, axis=1)
+                curr_features.extend(degrees)
                 
                 # 2. Global efficiency
-                if self.include_global_efficiency:
-                    D = self._compute_shortest_paths(W)
-                    with np.errstate(divide='ignore', invalid='ignore'):
-                        inv_D = 1 / D
-                        inv_D[D == 0] = 0
-                    efficiency = np.sum(inv_D) / (n_channels * (n_channels - 1))
-                    curr_features.append(efficiency)
+                D = self._compute_shortest_paths(W)
+                with np.errstate(divide='ignore', invalid='ignore'):
+                    inv_D = 1 / D
+                    inv_D[D == 0] = 0
+                efficiency = np.sum(inv_D) / (n_channels * (n_channels - 1))
+                curr_features.append(efficiency)
                 
                 # 3. Clustering coefficients
-                if self.include_clustering:
-                    clustering = np.zeros(n_channels)
-                    for j in range(n_channels):
-                        neighbors = np.where(W[j, :] > 0)[0]
-                        k = len(neighbors)
-                        if k < 2:
-                            clustering[j] = 0
-                            continue
-                            
-                        subgraph = W[neighbors, :][:, neighbors]
-                        triangles = np.sum(subgraph) / 2
-                        clustering[j] = (2 * triangles) / (k * (k - 1))
-                    curr_features.extend(clustering)
+                clustering = np.zeros(n_channels)
+                for j in range(n_channels):
+                    neighbors = np.where(W[j, :] > 0)[0]
+                    k = len(neighbors)
+                    if k < 2:
+                        clustering[j] = 0
+                        continue
+                        
+                    subgraph = W[neighbors, :][:, neighbors]
+                    triangles = np.sum(subgraph) / 2
+                    clustering[j] = (2 * triangles) / (k * (k - 1))
+                curr_features.extend(clustering)
                 
                 # 4. Transitivity
-                if self.include_transitivity:
-                    triangles = 0
-                    triplets = 0
-                    for j in range(n_channels):
-                        neighbors = np.where(W[j, :] > 0)[0]
-                        k = len(neighbors)
-                        if k < 2:
-                            continue
-                            
-                        subgraph = W[neighbors, :][:, neighbors]
-                        triangles += np.sum(subgraph) / 2
-                        triplets += k * (k - 1) / 2
-                    
-                    transitivity = triangles / triplets if triplets > 0 else 0
-                    curr_features.append(transitivity)
+                triangles = 0
+                triplets = 0
+                for j in range(n_channels):
+                    neighbors = np.where(W[j, :] > 0)[0]
+                    k = len(neighbors)
+                    if k < 2:
+                        continue
+                        
+                    subgraph = W[neighbors, :][:, neighbors]
+                    triangles += np.sum(subgraph) / 2
+                    triplets += k * (k - 1) / 2
+                
+                transitivity = triangles / triplets if triplets > 0 else 0
+                curr_features.append(transitivity)
                 
                 band_features.extend(curr_features)
             

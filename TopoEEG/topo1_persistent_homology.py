@@ -43,7 +43,6 @@ class PersistentHomologyTransformer(BaseEstimator, TransformerMixin):
 
         TE = TakensEmbedding(time_delay=embedding_time_delay_nonperiodic, dimension=embedding_dimension_nonperiodic, stride=stride)
 
-
         homology_dimensions = [1]
         VRP = VietorisRipsPersistence(homology_dimensions=homology_dimensions)
 

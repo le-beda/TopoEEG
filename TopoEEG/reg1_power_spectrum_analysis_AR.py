@@ -9,11 +9,11 @@ class ARTransformer(BaseEstimator, TransformerMixin):
                  psd_calculator,
                  domain, 
                  order=3):
-        
-        self.order = order
 
         self.psd_calculator = psd_calculator
         self.domain = domain
+
+        self.order = order
     
     def fit(self, X, y=None):
         return self

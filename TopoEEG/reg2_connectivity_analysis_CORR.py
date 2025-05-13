@@ -8,11 +8,8 @@ from itertools import combinations
 class CorrelationTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, 
                  psd_calculator,
-                 domain, 
-                 method='pearson', upper_triangular=True):
-        self.method = method
-        self.upper_triangular = upper_triangular    
-
+                 domain):  
+        
         self.psd_calculator = psd_calculator
         self.domain = domain
         
@@ -23,11 +20,7 @@ class CorrelationTransformer(BaseEstimator, TransformerMixin):
         n_samples, n_channels, n_timestamps = X.shape
         n_pairs = (n_channels * (n_channels - 1)) // 2  # Number of unique channel pairs
         
-        # Initialize output array
-        if self.upper_triangular:
-            X_corr = np.zeros((n_samples, n_pairs))
-        else:
-            X_corr = np.zeros((n_samples, n_channels, n_channels))
+        X_corr = np.zeros((n_samples, n_pairs)) # Initialize output array
         
         for i in tqdm(range(n_samples), desc="Computing features (Reg2. Connectivity analysis, CORR)"):
             corr_matrix = np.zeros((n_channels, n_channels))
@@ -38,20 +31,14 @@ class CorrelationTransformer(BaseEstimator, TransformerMixin):
                 corr_matrix[j, k] = corr_val
                 corr_matrix[k, j] = corr_val  # Symmetric
             
-            np.fill_diagonal(corr_matrix, 1.0)  # Auto-correlation is 1
+            np.fill_diagonal(corr_matrix, 1.0)  # Auto-correlation = 1
             
-            if self.upper_triangular:
-                triu_indices = np.triu_indices(n_channels, k=1)
-                X_corr[i, :] = corr_matrix[triu_indices]
-            else:
-                X_corr[i, :, :] = corr_matrix
+            triu_indices = np.triu_indices(n_channels, k=1)
+            X_corr[i, :] = corr_matrix[triu_indices]
+
                 
         return X_corr
 
     def _compute_correlation(self, x, y):
-        if self.method == 'pearson':
-            return np.corrcoef(x, y)[0, 1]
-        elif self.method == 'covariance':
-            return np.cov(x, y)[0, 1]
-        else:
-            raise ValueError(f"Unsupported method: {self.method}")
+        return np.corrcoef(x, y)[0, 1]
+        # return np.cov(x, y)[0, 1]
