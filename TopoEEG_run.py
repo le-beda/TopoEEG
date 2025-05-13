@@ -49,6 +49,8 @@ def main(
     perform_train,
     save_features_for_later,
     random_state,
+    num_epochs,
+    batch_size
     args
 ):
     rng = RandomState(random_state) 
@@ -165,7 +167,9 @@ def main(
         train_start = time.perf_counter()
         topoEEG_model = train.train(topoEEG_model,
                                     topo_X_train, y_train,
-                                    topo_X_val, y_val)
+                                    topo_X_val, y_val,
+                                    num_epochs,
+                                    batch_size)
         train_end = time.perf_counter()
         print(f"Model trained in {train_end - train_start:.6f} seconds")
 
@@ -261,6 +265,18 @@ if __name__ == "__main__":
         type=bool, 
         default=True,
         help='Does model need training?'
+    )
+    parser.add_argument(
+        '--num_epochs', 
+        type=int, 
+        default=100,
+        help='Number of train epochs'
+    )
+    parser.add_argument(
+        '--batch_size', 
+        type=int, 
+        default=32,
+        help='Size of train batch'
     )
     parser.add_argument(
         '--save_features_for_later', 
