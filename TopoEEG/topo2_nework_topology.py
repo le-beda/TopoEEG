@@ -30,14 +30,11 @@ class NetworkTopologyTransformer(BaseEstimator, TransformerMixin):
         n_samples, n_channels, n_timesteps = X.shape
         
         n_features = 0
-        if self.include_degree:
-            n_features += n_channels
-        if self.include_global_efficiency:
-            n_features += 1
-        if self.include_clustering:
-            n_features += n_channels
-        if self.include_transitivity:
-            n_features += 1
+        
+        n_features += n_channels
+        n_features += 1
+        n_features += n_channels
+        n_features += 1
             
         X_topology = np.zeros((n_samples, self.n_bands_ * n_features))
         
