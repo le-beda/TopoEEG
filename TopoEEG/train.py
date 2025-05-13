@@ -86,7 +86,7 @@ def train(model,
         with torch.no_grad():
             for inputs, labels in val_loader:
                 outputs = model(inputs)
-                loss = criterion(outputs.squeeze(), labels)
+                loss = criterion(outputs.squeeze(), labels.squeeze())
                 val_loss += loss.item() # * inputs.size(0)
 
                 # Collect predictions and true labels for metrics
