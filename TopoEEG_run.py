@@ -398,5 +398,7 @@ if __name__ == "__main__":
         perform_train=args.perform_train,
         save_features_for_later=args.save_features_for_later,
         random_state=args.random_state,
+        num_epochs=args.num_epochs,
+        batch_size=args.batch_size,
         args = modeling_TopoEEG.ModelArgs(args)
     )
